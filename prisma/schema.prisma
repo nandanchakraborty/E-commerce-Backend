@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"    // ✅ change this
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+
+  carts     Cart[]
+  orders    Order[]
+  reviews   Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+
+  products  Product[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int
+
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id])
+
+  items     CartItem[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+
+  cartId    String
+  productId String
+
+  quantity  Int      @default(1)
+
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Order {
+  id        String      @id @default(uuid())
+
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+
+  status    OrderStatus @default(PENDING)
+  total     Float
+
+  items     OrderItem[]
+  payment   Payment?
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+
+  orderId   String
+  productId String
+
+  quantity  Int
+  price     Float
+
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+
+  orderId   String        @unique
+  order     Order         @relation(fields: [orderId], references: [id])
+
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+
+  amount    Float
+
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum PaymentMethod {
+  CARD
+  COD
+  BKASH
+  NAGAD
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Review {
+  id        String   @id @default(uuid())
+
+  userId    String
+  productId String
+
+  rating    Int
+  comment   String?
+
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  createdAt DateTime @default(now())
+}
