@@ -1,4 +1,4 @@
-const { prisma } = require("../config/prisma"); // import from YOUR singleton, not @prisma/clientconst existingUser = async() =>{
+const { prisma } = require("../config/prisma"); 
  const isExist  = async(email) => {
 	return await prisma.user.findUnique({ where: { email } });
 
@@ -17,6 +17,7 @@ const { prisma } = require("../config/prisma"); // import from YOUR singleton, n
         id: true,
         name: true,
         email: true,
+        password: true,
         role: true,
         createdAt: true,
         updatedAt: true,
@@ -29,9 +30,12 @@ const { prisma } = require("../config/prisma"); // import from YOUR singleton, n
     throw err;
   }
 };
+
+
 module.exports = {
     createNewUser,
     isExist ,
+    
 }
 
 
