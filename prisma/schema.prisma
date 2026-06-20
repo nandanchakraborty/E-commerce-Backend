@@ -30,7 +30,7 @@ enum Role {
   USER
   ADMIN
 }
-
+    
 model Category {
   id        String    @id @default(uuid())
   name      String    @unique

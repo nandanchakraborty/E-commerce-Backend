@@ -61,9 +61,8 @@ const getCategoryById = async (id) => {
     });
 };
 
-//serach for existing product
 const isProductExist = async (name) => {
-    return prisma.product.findUnique({
+    return prisma.product.findFirst({
         where: {
             name,
         },
@@ -81,6 +80,32 @@ const createProduct = async (data) => {
         },
     });
 };
+
+// update product
+const updateProduct = async (id, data) => {
+    return prisma.product.update({
+        where: { id },
+        data,
+    });
+};
+
+// get product by id
+const getProductById = async (id) => {
+    return prisma.product.findUnique({
+        where: { id },
+        include: {
+            category: true,
+        },
+    });
+};
+const deleteProduct = async (id) => {
+  return prisma.product.delete({
+    where: {
+      id,
+    },
+  });
+};
+
 module.exports = {
   getAllCategories,
   updateCategory,
@@ -88,5 +113,8 @@ module.exports = {
   createCategory,
   getCategoryById,
   isProductExist,
-  createProduct
+  createProduct,
+  updateProduct,
+  getProductById,
+  deleteProduct,
 };

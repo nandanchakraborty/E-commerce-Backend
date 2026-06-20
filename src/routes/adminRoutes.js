@@ -10,5 +10,8 @@ router.put("/category/:id", adminController.updateCategory);
 
 router.delete("/category/:id", adminController.deleteCategory);
 router.post("/addProduct", adminController.addProduct);
-
+router.patch('/updateProduct/:productId',adminController.updateProduct);
+router.get('getProduct/:productId',adminController.getProductByID);
+router.delete("/Delete-products/:id",adminMiddleware,adminController.deleteProduct
+);
 module.exports = router;

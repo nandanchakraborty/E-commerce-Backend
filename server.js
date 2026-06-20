@@ -5,5 +5,6 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(` E-commerce API Server running on http://localhost:${PORT}`);
+  console.log(` E-commerce API swagger docs running on http://localhost:${PORT}/api-docs`)
 });
     
