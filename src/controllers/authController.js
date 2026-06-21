@@ -29,9 +29,10 @@ const router = require("../routes/authRoutes");
 const authService = require("../services/authService");
 const adminService = require("../services/adminService");
 const utils = require("../utils/helperFunction");
-const config = require('../config/config')
+const config = require('../config/config');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const {registerSchema,loginSchema} = require('../validators/authValidators');
 /**
  * @swagger
  * /user/health:
@@ -81,13 +82,12 @@ const gethealth = (req, res) => {
  *         description: Internal server error
  */
 const register = async (req, res) => {
-    const { name, email, password, role, otp } = req.body;
 
-    if (!name || !email || !password || !role) {
-        return res.status(400).json({ msg: "Missing required fields" });
-    }
+   
 
     try {
+        const { name, email, password, role, otp } = req.body;
+
         const existingUser = await authService.isExist(email);
         if (existingUser) {
             return res.status(409).json({ msg: "User already exists" });
@@ -159,22 +159,13 @@ const register = async (req, res) => {
  *         description: Internal server error
  */
 const login = async (req, res) => {
-  const { email, password } = req.body;
 
     try {
-        if (!email || !password) {
-            return res.status(400).json({
-                error: "Email and password are required.",
-            });
-        }
+        const { email, password } = req.body;
 
         const user = await authService.isExist(email);
 
-        if (!user || !user.password) {
-            return res.status(401).json({
-                error: "Invalid email or password",
-            });
-        }
+        
 
         const isMatch = await bcrypt.compare(password, user.password);
 

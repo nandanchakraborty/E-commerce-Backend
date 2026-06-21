@@ -283,7 +283,7 @@ const addProduct = async (req, res) => {
 
 		return res.status(201).json({
 			product,
-			message: "Product created successfully",
+			message: "Product added successfully",
 		});
 	} catch (err) {
 		console.error(err);
