@@ -49,7 +49,7 @@ const authorize = (requiredRole) => {
 };
 
 const userMiddleware = authorize("user");
-const adminMiddleware = authorize("admin");
+const adminMiddleware = authorize("ADMIN");
 
 module.exports = {
 	userMiddleware,

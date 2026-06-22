@@ -55,6 +55,21 @@ const addToCart = async ({ cartId, productId, quantity }) => {
         },
     });
 };
+const findCartItemById = async (id) => {
+    return prisma.cartItem.findUnique({
+        where: { id },
+    });
+};
+
+const deleteCartItem = async (cartId, productId) => {
+    return prisma.cartItem.deleteMany({
+        where: {
+            cartId,
+            productId,
+        },
+    });
+};
+
 module.exports = {
     getProducts,
     findCart,
@@ -63,6 +78,8 @@ module.exports = {
     updateCartItem,
     findProductById,
     findCartItem,
+    deleteCartItem,
+
     
 
 }

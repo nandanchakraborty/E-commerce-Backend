@@ -61,11 +61,7 @@ const addCategory = async (req, res) => {
 	try {
 		const { name } = req.body;
 
-		if (!name) {
-			return res.status(400).json({
-				msg: "Category name needed",
-			});
-		}
+		
 
 		const category = await adminService.createCategory(name);
 
@@ -147,11 +143,7 @@ const updateCategory = async (req, res) => {
 		const { id } = req.params;
 		const { name } = req.body;
 
-		if (!name) {
-			return res.status(400).json({
-				error: "Category name required",
-			});
-		}
+		
 
 		const updated = await adminService.updateCategory(id, name);
 
@@ -245,18 +237,6 @@ const addProduct = async (req, res) => {
 	const { name, description, price, stock, categoryId } = req.body;
 
 	try {
-		if (
-			!name ||
-			!description ||
-			price === null ||
-			stock === null ||
-			!categoryId
-		) {
-			return res.status(400).json({
-				error: "Need to fill all fields",
-			});
-		}
-
 		const existingProduct = await adminService.isProductExist(name);
 
 		if (existingProduct) {
@@ -347,11 +327,7 @@ const updateProduct = async(req,res) =>{
 			});
 		}
 
-		if (!name || !description || price === undefined || stock === undefined || !categoryId) {
-			return res.status(400).json({
-				error: "All fields (name, description, price, stock, categoryId) are required for update",
-			});
-		}
+		
 
 		const existingProduct = await adminService.isProductExist(name);
 
