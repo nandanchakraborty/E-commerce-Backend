@@ -35,7 +35,7 @@ router.patch(
 	adminController.updateProduct,
 );
 router.get(
-	"getProduct/:productId",
+	"/getProduct/:productId",
 	adminMiddleware,
 	adminController.getProductByID,
 );
