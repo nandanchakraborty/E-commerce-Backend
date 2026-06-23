@@ -404,7 +404,7 @@ const getProductByID = async(req,res)=>{
 }
 /**
  * @swagger
- * /delete-product/{id}:
+ * /admin/delete-products/{id}:
  *   delete:
  *     summary: Delete a product
  *     tags:

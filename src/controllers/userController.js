@@ -55,7 +55,7 @@ const getProducts = async (req, res) => {
 };
  /**
  * @swagger
- * /add-to-cart:
+ * /user/add-to-cart:
  *   post:
  *     summary: Add product to cart
  *     tags: [Cart]
@@ -171,7 +171,7 @@ const addToCart = async (req, res) => {
 };
  /**
  * @swagger
- * /update-cart/{id}:
+ * /user/update-cart/{id}:
  *   patch:
  *     summary: Update cart item quantity
  *     tags: [Cart]
@@ -271,7 +271,7 @@ const updateCart = async (req, res) => {
 };
  /**
  * @swagger
- * /getCartItem/{cartId}:
+ * /user/getCartItem/{cartId}:
  *   get:
  *     summary: Get all items in a cart
  *     tags: [Cart]
@@ -310,7 +310,7 @@ const getCartItem = async(req,res)=>{
 }
  /**
  * @swagger
- * /deleteCartItem/{productId}:
+ * /user/deleteCartItem/{productId}:
  *   delete:
  *     summary: Remove product from cart
  *     tags: [Cart]
