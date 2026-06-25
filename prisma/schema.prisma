@@ -4,7 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client-js"    // ✅ change this
+  provider = "prisma-client-js"    
   output   = "../src/generated/prisma"
 }
 
@@ -87,19 +87,23 @@ model CartItem {
 }
 
 model Order {
-  id        String      @id @default(uuid())
+  id              String      @id @default(uuid())
 
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
 
-  status    OrderStatus @default(PENDING)
-  total     Float
+  status          OrderStatus @default(PENDING)
 
-  items     OrderItem[]
-  payment   Payment?
+  total           Decimal     @db.Decimal(10,2)
 
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  shippingAddress String
+  phone           String
+
+  items           OrderItem[]
+  payment         Payment?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum OrderStatus {
@@ -126,18 +130,21 @@ model OrderItem {
 }
 
 model Payment {
-  id        String        @id @default(uuid())
+  id            String        @id @default(uuid())
 
-  orderId   String        @unique
-  order     Order         @relation(fields: [orderId], references: [id])
+  orderId       String        @unique
+  order         Order         @relation(fields: [orderId], references: [id])
 
-  method    PaymentMethod
-  status    PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
 
-  amount    Float
+  amount        Decimal @db.Decimal(10,2)
 
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  transactionId String?
+  paidAt        DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum PaymentMethod {

@@ -375,10 +375,150 @@ const deleteCartItem = async (req, res) => {
     }
 };
 
+/**
+ * @swagger
+ * /user/create-order:
+ *   post:
+ *     summary: Create a new order
+ *     tags: [Order]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - shippingAddress
+ *               - phone
+ *               - items
+ *             properties:
+ *               shippingAddress:
+ *                 type: string
+ *                 example: "Dhaka, Bangladesh"
+ *               phone:
+ *                 type: string
+ *                 example: "01700000000"
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - productId
+ *                     - quantity
+ *                   properties:
+ *                     productId:
+ *                       type: string
+ *                       format: uuid
+ *                       example: "550e8400-e29b-41d4-a716-446655440000"
+ *                     quantity:
+ *                       type: integer
+ *                       example: 2
+ *     responses:
+ *       201:
+ *         description: Order created successfully
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+const createOrder = async (req, res) => {
+    try {
+        const order = await userService.createOrder(
+            req.user.id,
+            req.body
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: 'Order created successfully',
+            data: order,
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+/**
+ * @swagger
+ * /user/orders:
+ *   get:
+ *     summary: Get all orders
+ *     tags: [Order]
+ *     responses:
+ *       200:
+ *         description: Orders fetched successfully
+ *       500:
+ *         description: Internal server error
+ */
+const getOrders = async (req, res) => {
+    try {
+        const orders = await userService.getOrders();
+
+        return res.status(200).json({
+            success: true,
+            data: orders,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+/**
+ * @swagger
+ * /user/orders/{id}:
+ *   get:
+ *     summary: Get a single order by ID
+ *     tags: [Order]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order fetched successfully
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+const getOrderById = async (req, res) => {
+    try {
+        const order = await userService.getOrderById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found',
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: order,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+
 module.exports = {
 	getProducts,
 	addToCart,
 	updateCart,
     getCartItem,
     deleteCartItem,
+	createOrder,
+    getOrders,
+    getOrderById,
 };

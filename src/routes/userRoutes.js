@@ -18,11 +18,21 @@ router.patch(
 	"/update-cart",
 	userMiddleware,
 	validationMiddleware(userValidators.CartSchema),
-	userController.updateCart);
-router.get('/getCartItem/:cartId',userMiddleware,userController.getCartItem)
+	userController.updateCart,
+);
+router.get("/getCartItem/:cartId", userMiddleware, userController.getCartItem);
 
-router.delete('/deleteCartItem',userMiddleware,userController.deleteCartItem)
+router.delete("/deleteCartItem", userMiddleware, userController.deleteCartItem);
 
+router.post(
+	"/create-order",
+	userMiddleware,
+	validationMiddleware(userValidators.createOrderSchema),
+	userController.createOrder,
+);
 
+router.get("/orders", userMiddleware, userController.getOrders);
+
+router.get("/orders/:id",userMiddleware, userController.getOrderById);
 
 module.exports = router;
