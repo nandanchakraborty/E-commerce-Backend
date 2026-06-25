@@ -73,7 +73,7 @@ const deleteCartItem = async (cartId, productId) => {
 const createOrder = async (userId, payload) => {
     const { shippingAddress, phone, items } = payload;
 
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {   //tx a special prisma client that works inside the transaction
         let total = 0;
         const orderItems = [];
 
