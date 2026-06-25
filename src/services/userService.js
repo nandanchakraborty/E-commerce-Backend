@@ -73,49 +73,72 @@ const deleteCartItem = async (cartId, productId) => {
 const createOrder = async (userId, payload) => {
     const { shippingAddress, phone, items } = payload;
 
-    let total = 0;
+    return await prisma.$transaction(async (tx) => {
+        let total = 0;
+        const orderItems = [];
 
-    const orderItems = [];
+        for (const item of items) {
+            const product = await tx.product.findUnique({
+                where: {
+                    id: item.productId,
+                },
+            });
 
-    for (const item of items) {
-        const product = await prisma.product.findUnique({
-            where: {
-                id: item.productId,
-            },
-        });
+            if (!product) {
+                throw new Error(`Product ${item.productId} not found`);
+            }
 
-        if (!product) {
-            throw new Error(`Product ${item.productId} not found`);
+            const stockUpdate = await tx.product.updateMany({
+                where: {
+                    id: item.productId,
+                    stock: {
+                        gte: item.quantity,
+                    },
+                },
+                data: {
+                    stock: {
+                        decrement: item.quantity,
+                    },
+                },
+            });
+
+            if (stockUpdate.count === 0) {
+                throw new Error(
+                    `${product.name} does not have enough stock`
+                );
+            }
+
+            const subtotal =
+                Number(product.price) * item.quantity;
+
+            total += subtotal;
+
+            orderItems.push({
+                productId: product.id,
+                quantity: item.quantity,
+                price: Number(product.price),
+            });
         }
 
-        const subtotal = Number(product.price) * item.quantity;
-        total += subtotal;
+        const order = await tx.order.create({
+            data: {
+                userId,
+                shippingAddress,
+                phone,
+                total,
 
-        orderItems.push({
-            productId: product.id,
-            quantity: item.quantity,
-            price: Number(product.price),
-        });
-    }
-
-    const order = await prisma.order.create({
-        data: {
-            userId,
-            shippingAddress,
-            phone,
-            total,
-            items: {
-                create: orderItems,
+                orderItems: {
+                    create: orderItems,
+                },
             },
-        },
-        include: {
-            items: true,
-        },
+            include: {
+                orderItems: true,
+            },
+        });
+
+        return order;
     });
-
-    return order;
 };
-
 const getOrders = async () => {
     return prisma.order.findMany({
         include: {
