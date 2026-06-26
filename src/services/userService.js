@@ -1,4 +1,7 @@
 const { prisma } = require("../config/prisma"); 
+const config = require('../config/config');
+const Stripe = require("stripe");
+const { v4: uuidv4 } = require("uuid");
 
 const getProducts = async () => {
     return prisma.product.findMany({
@@ -168,6 +171,209 @@ const getOrderById = async (id) => {
     });
 };
 
+
+const stripe = Stripe(config.STRIPE_SECRET_KEY);
+
+const createPaymentIntent = async (
+  orderId,
+  userId
+) => {
+
+  const order =
+    await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        userId,
+      },
+      include: {
+        payment: true,
+      },
+    });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  if (order.status === "PAID") {
+    throw new Error("Order already paid");
+  }
+
+  if (order.payment?.stripeIntentId) {
+
+    const existingIntent =
+      await stripe.paymentIntents.retrieve(
+        order.payment.stripeIntentId
+      );
+
+    return {
+      clientSecret:
+        existingIntent.client_secret,
+    };
+  }
+
+  const idempotencyKey = uuidv4();
+
+  const paymentIntent =
+    await stripe.paymentIntents.create(
+      {
+        amount:
+          Math.round(
+            Number(order.total) * 100
+          ),
+
+        currency: "usd",
+
+        metadata: {
+          orderId: order.id,
+          userId,
+        },
+      },
+      {
+        idempotencyKey,
+      }
+    );
+
+  await prisma.payment.create({
+    data: {
+      orderId: order.id,
+      amount: order.total,
+      method: "CARD",
+      status: "PENDING",
+      stripeIntentId:
+        paymentIntent.id,
+      idempotencyKey,
+    },
+  });
+
+  return {
+    clientSecret:
+      paymentIntent.client_secret,
+  };
+};
+const handleSuccess = async (
+  paymentIntent
+) => {
+
+  const payment =
+    await prisma.payment.findFirst({
+      where: {
+        stripeIntentId:
+          paymentIntent.id,
+      },
+    });
+
+  if (!payment) return;
+
+  await prisma.$transaction(
+    async (tx) => {
+
+      await tx.payment.update({
+        where: {
+          id: payment.id,
+        },
+        data: {
+          status: "COMPLETED",
+
+          transactionId:
+            String(
+              paymentIntent.latest_charge
+            ),
+
+          paidAt: new Date(),
+        },
+      });
+
+      await tx.order.update({
+        where: {
+          id: payment.orderId,
+        },
+        data: {
+          status: "PAID",
+        },
+      });
+
+    }
+  );
+};
+const handleFailure = async (
+  paymentIntent
+) => {
+
+  const payment =
+    await prisma.payment.findFirst({
+      where: {
+        stripeIntentId:
+          paymentIntent.id,
+      },
+    });
+
+  if (!payment) return;
+
+  await prisma.payment.update({
+    where: {
+      id: payment.id,
+    },
+    data: {
+      status: "FAILED",
+    },
+  });
+};
+const createCheckoutSession = async (
+    orderId,
+    userId
+) => {
+
+    const order =
+        await prisma.order.findFirst({
+            where: {
+                id: orderId,
+                userId,
+            },
+        });
+
+    if (!order) {
+        throw new Error("Order not found");
+    }
+
+    const session =
+        await stripe.checkout.sessions.create({
+            mode: "payment",
+
+            line_items: [
+                {
+                    price_data: {
+                        currency: "usd",
+
+                        product_data: {
+                            name: `Order ${order.id}`,
+                        },
+
+                        unit_amount:
+                            Math.round(
+                                Number(order.total) * 100
+                            ),
+                    },
+
+                    quantity: 1,
+                },
+            ],
+
+            success_url:
+                "http://localhost:3000/success.html",
+
+            cancel_url:
+                "http://localhost:3000/cancel.html",
+
+            metadata: {
+                orderId: order.id,
+            },
+        });
+
+    return {
+        url: session.url,
+    };
+};
+
 module.exports = {
     getProducts,
     findCart,
@@ -180,6 +386,10 @@ module.exports = {
     createOrder,
     getOrders,
     getOrderById,
+    createPaymentIntent,
+    handleSuccess,
+    handleFailure,
+    createCheckoutSession,
 
     
 

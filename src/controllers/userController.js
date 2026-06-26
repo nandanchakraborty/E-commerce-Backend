@@ -511,6 +511,137 @@ const getOrderById = async (req, res) => {
     }
 };
 
+const webhook = async (
+  req,
+  res
+) => {
+
+  const signature =
+    req.headers["stripe-signature"];
+
+  let event;
+
+  try {
+
+    event =
+      stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        process.env
+          .STRIPE_WEBHOOK_SECRET
+      );
+
+  } catch (err) {
+
+    return res
+      .status(400)
+      .send(
+        `Webhook Error: ${err.message}`
+      );
+  }
+
+  switch (event.type) {
+
+    case "payment_intent.succeeded":
+
+      await handleSuccess(
+        event.data.object
+      );
+
+      break;
+
+    case "payment_intent.payment_failed":
+
+      await handleFailure(
+        event.data.object
+      );
+
+      break;
+  }
+
+  res.json({ received: true });
+};
+/**
+ * @swagger
+ * /user/create-intent/{orderId}:
+ *   post:
+ *     summary: Create Stripe Payment Intent
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Payment intent created successfully
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Order not found
+ */
+
+const createPaymentIntent = async (req,res) => {
+  try {
+
+    const { orderId } = req.params;
+
+    const result =
+      await paymentService.createPaymentIntent(
+        orderId,
+        req.user.id
+      );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Payment intent created successfully",
+      data: result,
+    });
+
+  } catch (error) {
+
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+};
+
+const createCheckoutSession = async (
+    req,
+    res
+) => {
+    try {
+        const { orderId } = req.params;
+
+        const session =
+            await paymentService.createCheckoutSession(
+                orderId,
+                req.user.id
+            );
+
+        return res.status(200).json({
+            success: true,
+            url: session.url,
+        });
+
+    } catch (error) {
+
+        return res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
 
 module.exports = {
 	getProducts,
@@ -521,4 +652,7 @@ module.exports = {
 	createOrder,
     getOrders,
     getOrderById,
+	webhook,
+	createPaymentIntent,
+	createCheckoutSession,
 };

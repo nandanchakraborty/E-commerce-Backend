@@ -128,25 +128,35 @@ model OrderItem {
 
   createdAt DateTime @default(now())
 }
-
 model Payment {
-  id            String        @id @default(uuid())
+  id              String        @id @default(uuid())
 
-  orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id])
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id])
 
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
 
-  amount        Decimal @db.Decimal(10,2)
+  amount          Decimal       @db.Decimal(10,2)
 
-  transactionId String?
-  paidAt        DateTime?
+  transactionId   String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  stripeIntentId  String?       @unique
+
+  idempotencyKey  String?       @unique
+
+  paidAt          DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
 enum PaymentMethod {
   CARD
   COD
@@ -154,11 +164,7 @@ enum PaymentMethod {
   NAGAD
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
+
 
 model Review {
   id        String   @id @default(uuid())

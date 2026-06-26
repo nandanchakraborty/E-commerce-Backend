@@ -16,7 +16,7 @@ const registerSchema = loginSchema.extend({
         .min(3, "Name must be at least 3 characters")
         .max(50, "Name cannot exceed 50 characters"),
 
-    role: z.string().trim(),
+    role: z.enum(["user", "Admin"]),
 });
 
 module.exports = {

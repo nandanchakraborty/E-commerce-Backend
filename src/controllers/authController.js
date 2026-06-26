@@ -24,15 +24,11 @@
  *           type: string
  */
 
-
-const router = require("../routes/authRoutes");
 const authService = require("../services/authService");
-const adminService = require("../services/adminService");
 const utils = require("../utils/helperFunction");
 const config = require('../config/config');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const {registerSchema,loginSchema} = require('../validators/authValidators');
 /**
  * @swagger
  * /user/health:
@@ -101,6 +97,7 @@ const register = async (req, res) => {
                 msg: "OTP sent to email",
             });
         }
+        console.log("otp is :"+otp)
 
         const isVerified = utils.verifyOTP(email, otp);
         if (!isVerified) {
@@ -164,6 +161,10 @@ const login = async (req, res) => {
         const { email, password } = req.body;
 
         const user = await authService.isExist(email);
+        if (!user) {
+        return res.status(401).json({error: "Invalid email or password",
+    });
+}
 
         
 

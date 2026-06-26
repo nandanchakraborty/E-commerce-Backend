@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Stripe Checkout Test</title>
+</head>
+<body>
+
+    <h2>Stripe Checkout Test</h2>
+
+    <input
+        type="text"
+        id="orderId"
+        placeholder="Order ID"
+    />
+
+    <br><br>
+
+    <button onclick="payNow()">
+        Pay Now
+    </button>
+
+    <script>
+        async function payNow() {
+
+            const orderId =
+                document.getElementById("orderId").value;
+
+            const response =
+                await fetch(
+                    `http://localhost:3000/user/checkout/${orderId}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            Authorization:
+                             `Bearer ${token}`
+}
+                    }
+                );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message);
+                return;
+            }
+
+            window.location.href = data.url;
+        }
+    </script>
+
+</body>
+</html>

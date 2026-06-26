@@ -33,6 +33,25 @@ router.post(
 
 router.get("/orders", userMiddleware, userController.getOrders);
 
-router.get("/orders/:id",userMiddleware, userController.getOrderById);
+router.get("/orders/:id", userMiddleware, userController.getOrderById);
+router.post(
+	"/create-intent/:orderId",
+	userMiddleware,
+	userController.createPaymentIntent,
+);
 
+router.post(
+	"/webhook",
+	express.raw({
+		type: "application/json",
+	}),
+	userController.webhook,
+);
+
+router.post(
+    "/checkout/:orderId",
+    userMiddleware,
+    userController
+        .createCheckoutSession
+);
 module.exports = router;

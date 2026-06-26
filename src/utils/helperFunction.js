@@ -1,8 +1,15 @@
-const {JWT_SECRET,SECRET,JWT_REFRESH,EMAILUSER,EMAILPASSWORD,GOOGLE_CLIENT_ID,CLIENT_SECRET} = require('../config/config')
+const {
+	JWT_SECRET,
+	SECRET,
+	JWT_REFRESH,
+	EMAILUSER,
+	EMAILPASSWORD,
+	GOOGLE_CLIENT_ID,
+	CLIENT_SECRET,
+} = require("../config/config");
 
 const speakeasy = require("speakeasy");
 const nodemailer = require("nodemailer");
-
 
 function getUserSecret(email) {
 	return `${SECRET}_${email}`;
@@ -38,14 +45,17 @@ async function sendOTPEmail(email, otp) {
 	await transporter.sendMail({
 		from: `"OTP Service" <${EMAILUSER}>`,
 		to: email,
-		subject: "Your OTP Code",
-		text: `Your OTP code is: ${otp}`,
+		subject: "Your Verification Code",
+		text: `Hello,
+			Your verification code is: ${otp}
+			This code expires in 5 minutes.
+			If you did not request this code, please ignore this email.`,
 	});
 }
 
-module.exports={
-    getUserSecret,
-    generateOTP,
-    verifyOTP,
-    sendOTPEmail,
-}
+module.exports = {
+	getUserSecret,
+	generateOTP,
+	verifyOTP,
+	sendOTPEmail,
+};
