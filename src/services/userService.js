@@ -18,8 +18,8 @@ const findCart = async (userId) => {
         },
     });
 };
-const cartCreate = async(userId) => {
-    return prisma.cart.cartCreate({
+const createCart = async(userId) => {
+    return prisma.cart.create({
         data: {userId :userId}
     })
     
@@ -27,7 +27,7 @@ const cartCreate = async(userId) => {
 const findProductById = async (productId) => {
     return prisma.product.findUnique({
         where: {
-            id: Number(productId),
+            id:productId,
         },
     });
 };
@@ -35,7 +35,7 @@ const findCartItem = async (cartId, productId) => {
     return prisma.cartItem.findFirst({
         where: {
             cartId,
-            productId: Number(productId),
+            productId: productId,
         },
     });
 };
@@ -53,7 +53,7 @@ const addToCart = async ({ cartId, productId, quantity }) => {
     return prisma.cartItem.create({
         data: {
             cartId,
-            productId: Number(productId),
+            productId: productId,
             quantity,
         },
     });
@@ -73,75 +73,7 @@ const deleteCartItem = async (cartId, productId) => {
     });
 };
 
-const createOrder = async (userId, payload) => {
-    const { shippingAddress, phone, items } = payload;
 
-    return await prisma.$transaction(async (tx) => {   //tx a special prisma client that works inside the transaction
-        let total = 0;
-        const orderItems = [];
-
-        for (const item of items) {
-            const product = await tx.product.findUnique({
-                where: {
-                    id: item.productId,
-                },
-            });
-
-            if (!product) {
-                throw new Error(`Product ${item.productId} not found`);
-            }
-
-            const stockUpdate = await tx.product.updateMany({
-                where: {
-                    id: item.productId,
-                    stock: {
-                        gte: item.quantity,
-                    },
-                },
-                data: {
-                    stock: {
-                        decrement: item.quantity,
-                    },
-                },
-            });
-
-            if (stockUpdate.count === 0) {
-                throw new Error(
-                    `${product.name} does not have enough stock`
-                );
-            }
-
-            const subtotal =
-                Number(product.price) * item.quantity;
-
-            total += subtotal;
-
-            orderItems.push({
-                productId: product.id,
-                quantity: item.quantity,
-                price: Number(product.price),
-            });
-        }
-
-        const order = await tx.order.create({
-            data: {
-                userId,
-                shippingAddress,
-                phone,
-                total,
-
-                orderItems: {
-                    create: orderItems,
-                },
-            },
-            include: {
-                orderItems: true,
-            },
-        });
-
-        return order;
-    });
-};
 const getOrders = async () => {
     return prisma.order.findMany({
         include: {
@@ -335,6 +267,10 @@ const createCheckoutSession = async (
         throw new Error("Order not found");
     }
 
+    if (order.status === "PAID") {
+    throw new Error("Order is already paid");
+}
+
     const session =
         await stripe.checkout.sessions.create({
             mode: "payment",
@@ -373,11 +309,130 @@ const createCheckoutSession = async (
         url: session.url,
     };
 };
+const createOrder = async (userId, payload) => {
+    const { shippingAddress, phone, items } = payload;
+
+    return await prisma.$transaction(async (tx) => {
+        let total = 0;
+        const orderItems = [];
+
+        for (const item of items) {
+
+            const product = await tx.product.findUnique({
+                where: {
+                    id: item.productId,
+                },
+            });
+
+            if (!product) {
+                throw new Error(
+                    `Product ${item.productId} not found`
+                );
+            }
+
+            const stockUpdate = await tx.product.updateMany({
+                where: {
+                    id: item.productId,
+                    stock: {
+                        gte: item.quantity,
+                    },
+                },
+                data: {
+                    stock: {
+                        decrement: item.quantity,
+                    },
+                },
+            });
+
+            if (stockUpdate.count === 0) {
+                throw new Error(
+                    `${product.name} does not have enough stock`
+                );
+            }
+
+            const subtotal =
+                Number(product.price) * item.quantity;
+
+            total += subtotal;
+
+            orderItems.push({
+                productId: product.id,
+                quantity: item.quantity,
+                price: Number(product.price),
+            });
+        }
+
+        const order = await tx.order.create({
+            data: {
+                userId,
+                shippingAddress,
+                phone,
+                total,
+
+                items: {
+                    create: orderItems,
+                },
+            },
+
+            include: {
+                items: true,
+            },
+        });
+        await tx.payment.create({
+    data: {
+        orderId: order.id,
+        method: "CARD",
+        amount: total,
+        status: "PENDING",
+    },
+});
+
+        return order;
+    });
+};
+const handlePaymentSuccess =
+    async (session) => {
+
+        const orderId =
+            session.metadata.orderId;
+
+        await prisma.$transaction([
+
+            prisma.payment.update({
+                where: {
+                    orderId,
+                },
+
+                data: {
+                    status:
+                        "COMPLETED",
+
+                    paidAt:
+                        new Date(),
+
+                    transactionId:
+                        session.payment_intent,
+                },
+            }),
+
+            prisma.order.update({
+                where: {
+                    id: orderId,
+                },
+
+                data: {
+                    status:
+                        "PAID",
+                },
+            }),
+
+        ]);
+    };
 
 module.exports = {
     getProducts,
     findCart,
-    cartCreate,
+    createCart,
     addToCart,
     updateCartItem,
     findProductById,
@@ -390,6 +445,7 @@ module.exports = {
     handleSuccess,
     handleFailure,
     createCheckoutSession,
+    handlePaymentSuccess
 
     
 

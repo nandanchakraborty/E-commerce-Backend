@@ -5,6 +5,7 @@ const utils = require("../utils/helperFunction");
 const config = require("../config/config");
 const { userMiddleware } = require("../middleware/authMiddleware");
 const { success } = require("zod");
+const stripe = require("stripe");
 /**
  * @swagger
  * /user/getproduct:
@@ -90,7 +91,7 @@ const getProducts = async (req, res) => {
 const addToCart = async (req, res) => {
 	try {
 		const { productId, quantity } = req.body;
-		const userId = req.user.id;
+		const userId = req.userId;
 
 		if (quantity <= 0) {
 			return res.status(400).json({
@@ -208,7 +209,7 @@ const updateCart = async (req, res) => {
 	try {
 		const cartItemId = req.params.id;
 		const { quantity } = req.body;
-		const userId = req.user.id;
+		const userId = req.userId;
 
 
 		
@@ -331,7 +332,7 @@ const getCartItem = async(req,res)=>{
  */
 const deleteCartItem = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const { productId } = req.params;
 
         // find user's cart
@@ -424,7 +425,7 @@ const deleteCartItem = async (req, res) => {
 const createOrder = async (req, res) => {
     try {
         const order = await userService.createOrder(
-            req.user.id,
+            req.userId,
             req.body
         );
 
@@ -510,56 +511,52 @@ const getOrderById = async (req, res) => {
         });
     }
 };
-
 const webhook = async (
-  req,
-  res
+    req,
+    res
 ) => {
 
-  const signature =
-    req.headers["stripe-signature"];
+    const signature =
+        req.headers[
+            "stripe-signature"
+        ];
 
-  let event;
+    let event;
 
-  try {
+    try {
 
-    event =
-      stripe.webhooks.constructEvent(
-        req.body,
-        signature,
-        process.env
-          .STRIPE_WEBHOOK_SECRET
-      );
+        event =
+            stripe.webhooks
+                .constructEvent(
+                    req.body,
+                    signature,
+                    config.WEBHOOK_SECRET
+                );
 
-  } catch (err) {
+    } catch (err) {
 
-    return res
-      .status(400)
-      .send(
-        `Webhook Error: ${err.message}`
-      );
-  }
+        return res
+            .status(400)
+            .send(
+                `Webhook Error: ${err.message}`
+            );
+    }
 
-  switch (event.type) {
+    switch (event.type) {
 
-    case "payment_intent.succeeded":
+        case "checkout.session.completed":
 
-      await handleSuccess(
-        event.data.object
-      );
+            await userService
+                .handlePaymentSuccess(
+                    event.data.object
+                );
 
-      break;
+            break;
+    }
 
-    case "payment_intent.payment_failed":
-
-      await handleFailure(
-        event.data.object
-      );
-
-      break;
-  }
-
-  res.json({ received: true });
+    res.json({
+        received: true,
+    });
 };
 /**
  * @swagger
@@ -593,9 +590,9 @@ const createPaymentIntent = async (req,res) => {
     const { orderId } = req.params;
 
     const result =
-      await paymentService.createPaymentIntent(
+      await userService.createPaymentIntent(
         orderId,
-        req.user.id
+        req.userId
       );
 
     return res.status(200).json({
@@ -614,34 +611,86 @@ const createPaymentIntent = async (req,res) => {
 
   }
 };
+/**
+ * @swagger
+ * /user/checkout/{orderId}:
+ *   post:
+ *     summary: Create Stripe Checkout Session
+ *     tags: [Payment]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID to be paid
+ *     responses:
+ *       200:
+ *         description: Stripe Checkout Session created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 url:
+ *                   type: string
+ *                   example: https://checkout.stripe.com/c/pay/cs_test_xxxxxxxxx
+ *       400:
+ *         description: Invalid order or checkout creation failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Order not found
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 
-const createCheckoutSession = async (
-    req,
-    res
-) => {
-    try {
-        const { orderId } = req.params;
+const createCheckoutSession =
+    async (req, res) => {
 
-        const session =
-            await paymentService.createCheckoutSession(
-                orderId,
-                req.user.id
-            );
+        try {
 
-        return res.status(200).json({
-            success: true,
-            url: session.url,
-        });
+            const { orderId } =
+                req.params;
 
-    } catch (error) {
+            const session =
+                await userService
+                    .createCheckoutSession(
+                        orderId,
+                        req.userId
+                    );
 
-        return res.status(400).json({
-            success: false,
-            message: error.message,
-        });
+            return res.status(200)
+                .json({
+                    success: true,
+                    url: session.url,
+                });
 
-    }
-};
+        } catch (error) {
+
+            return res.status(400)
+                .json({
+                    success: false,
+                    message:
+                        error.message,
+                });
+
+        }
+    };
 
 module.exports = {
 	getProducts,

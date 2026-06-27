@@ -7,13 +7,31 @@
 
     <h2>Stripe Checkout Test</h2>
 
-    <input
-        type="text"
-        id="orderId"
-        placeholder="Order ID"
-    />
+    <div>
+        <label>Order ID:</label>
+        <br>
+        <input
+            type="text"
+            id="orderId"
+            placeholder="Enter Order ID"
+            style="width:500px"
+        />
+    </div>
 
-    <br><br>
+    <br>
+
+    <div>
+        <label>JWT Token:</label>
+        <br>
+        <textarea
+            id="token"
+            placeholder="Paste your JWT token here"
+            rows="6"
+            cols="80"
+        ></textarea>
+    </div>
+
+    <br>
 
     <button onclick="payNow()">
         Pay Now
@@ -23,30 +41,51 @@
         async function payNow() {
 
             const orderId =
-                document.getElementById("orderId").value;
+                document.getElementById("orderId").value.trim();
 
-            const response =
-                await fetch(
+            const token =
+                document.getElementById("token").value.trim();
+
+            if (!orderId) {
+                alert("Please enter Order ID");
+                return;
+            }
+
+            if (!token) {
+                alert("Please enter JWT Token");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
                     `http://localhost:3000/user/checkout/${orderId}`,
                     {
                         method: "POST",
                         headers: {
-                            Authorization:
-                             `Bearer ${token}`
-}
+                            "Authorization": `Bearer ${token}`
+                        }
                     }
                 );
 
-            const data = await response.json();
+                const data = await response.json();
 
-            if (!response.ok) {
-                alert(data.message);
-                return;
+                if (!response.ok) {
+                    alert(data.message || "Something went wrong");
+                    return;
+                }
+
+                window.location.href = data.url;
+
+            } catch (error) {
+
+                console.error(error);
+                alert("Request failed");
+
             }
-
-            window.location.href = data.url;
         }
     </script>
 
 </body>
 </html>
+

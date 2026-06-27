@@ -40,17 +40,17 @@ router.post(
 	userController.createPaymentIntent,
 );
 
-router.post(
-	"/webhook",
-	express.raw({
-		type: "application/json",
-	}),
-	userController.webhook,
-);
+// router.post(
+// 	"/webhook",
+// 	express.raw({
+// 		type: "application/json",
+// 	}),
+// 	userController.webhook,
+// );
 
 router.post(
     "/checkout/:orderId",
-    userMiddleware,
+    // userMiddleware,
     userController
         .createCheckoutSession
 );

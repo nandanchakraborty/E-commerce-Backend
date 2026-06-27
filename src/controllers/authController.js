@@ -82,7 +82,7 @@ const register = async (req, res) => {
    
 
     try {
-        const { name, email, password, role, otp } = req.body;
+        const { name, email, password, Role, otp } = req.body;
 
         const existingUser = await authService.isExist(email);
         if (existingUser) {
@@ -109,7 +109,7 @@ const register = async (req, res) => {
         const userPayload = {
             name,
             email,
-            role,
+            Role,
             password: hashedPassword,
         };
 
