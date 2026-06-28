@@ -33,7 +33,24 @@ const createOrderSchema = z.object({
         .min(1, 'At least one item is required'),
 });
 
+
+const updateProfileSchema = z.object({
+    name: z
+        .string()
+        .trim()
+        .min(3)
+        .max(50)
+        .optional(),
+
+    email: z
+        .string()
+        .trim()
+        .email()
+        .optional(),
+});
+
 module.exports = {
     CartSchema,
-    createOrderSchema
+    createOrderSchema,
+    updateProfileSchema,
 }

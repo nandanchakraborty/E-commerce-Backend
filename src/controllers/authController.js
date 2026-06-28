@@ -202,7 +202,12 @@ const login = async (req, res) => {
 
 
 
-
+const logout = async (req, res) => {
+    return res.status(200).json({
+        success: true,
+        message: "Logout successful",
+    });
+};
 
 
 
@@ -218,6 +223,7 @@ module.exports = {
     gethealth,
     register,
   login,
+  logout
 
 };
 

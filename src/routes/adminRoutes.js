@@ -44,4 +44,9 @@ router.delete(
 	adminMiddleware,
 	adminController.deleteProduct,
 );
+router.get(
+    "/dashboard",
+   // adminMiddleware,
+    adminController.getDashboard
+);
 module.exports = router;

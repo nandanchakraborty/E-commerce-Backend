@@ -429,7 +429,53 @@ const handlePaymentSuccess =
         ]);
     };
 
+const updateProfile = async (
+    userId,
+    payload
+) => {
+
+    const { name, email } = payload;
+
+    if (email) {
+
+        const existingUser =
+            await prisma.user.findFirst({
+                where: {
+                    email,
+                    NOT: {
+                        id: userId,
+                    },
+                },
+            });
+
+        if (existingUser) {
+            throw new Error(
+                "Email already exists"
+            );
+        }
+    }
+
+    return await prisma.user.update({
+        where: {
+            id: userId,
+        },
+
+        data: {
+            name,
+            email,
+        },
+
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+        },
+    });
+};
 module.exports = {
+    updateProfile,
     getProducts,
     findCart,
     createCart,

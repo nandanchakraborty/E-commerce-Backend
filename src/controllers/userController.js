@@ -692,7 +692,70 @@ const createCheckoutSession =
         }
     };
 
+    /**
+ * @swagger
+ * /user/profile:
+ *   patch:
+ *     summary: Update user profile
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Nandan Chakraborty
+ *               email:
+ *                 type: string
+ *                 example: nandan@gmail.com
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *       400:
+ *         description: Validation error or email already exists
+ *       401:
+ *         description: Unauthorized
+ */
+    const updateProfile = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const user =
+            await userService
+                .updateProfile(
+                    req.user.id,
+                    req.body
+                );
+
+        return res.status(200).json({
+            success: true,
+            message:
+                "Profile updated successfully",
+            data: user,
+        });
+
+    } catch (error) {
+
+        return res.status(400).json({
+            success: false,
+            message:
+                error.message,
+        });
+
+    }
+};
+
+
 module.exports = {
+    updateProfile,
 	getProducts,
 	addToCart,
 	updateCart,

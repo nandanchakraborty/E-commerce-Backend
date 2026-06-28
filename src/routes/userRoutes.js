@@ -50,8 +50,14 @@ router.post(
 
 router.post(
     "/checkout/:orderId",
-    // userMiddleware,
+    userMiddleware,
     userController
         .createCheckoutSession
 );
+router.patch(
+    "/profile",
+    userMiddleware,validationMiddleware(userValidators.updateProfileSchema),
+    userController.updateProfile
+);
+
 module.exports = router;
