@@ -428,9 +428,12 @@ const createOrder = async (req, res) => {
             req.userId,
             req.body
         );
-         await utils.sendNotificationEmail(order.user.email,"Order Creation",
+         utils.sendNotificationEmail(order.user.email,"Order Creation",
     `Your order ${order.id} has been created successfully.`
-);
+).catch(err=>{
+    console.log('email error :'+err);
+
+})
 
         return res.status(201).json({
             success: true,
@@ -553,6 +556,21 @@ const webhook = async (
                 .handlePaymentSuccess(
                     event.data.object
                 );
+                try {
+
+        utils.sendNotificationEmail(
+            order.user.email,
+            "Payment Successful",
+            `Your payment for order ${order.id} was successful.`
+        );
+
+    } catch (err) {
+
+        console.error(
+            "Payment email failed:",
+            err.message
+        );
+    }
 
             break;
     }
@@ -824,9 +842,11 @@ const cancelOrder = async(req,res)=>{
         });
 }    
         const order = await userService.cancelOrder(orderId)
-        await utils.sendNotificationEmail(order.user.email,"Order Cancelled",
+     utils.sendNotificationEmail(order.user.email,"Order Cancelled",
     `Your order ${order.id} has been cancelled successfully.`
-);
+).catch(err =>{
+    console.log("email error :"+err);
+});
         return res.status(200).json({
             success: true,
             msg: "Order cancelled successfully",
