@@ -376,6 +376,7 @@ const createOrder = async (userId, payload) => {
 
             include: {
                 items: true,
+                user:true,
             },
         });
         await tx.payment.create({
@@ -474,6 +475,61 @@ const updateProfile = async (
         },
     });
 };
+const cancelOrder = async (orderId) => {
+    return await prisma.$transaction(async (tx) => {
+
+        const order = await tx.order.findUnique({
+            where: {
+                id: orderId,
+            },
+            include: {
+                items: true,
+                user : true,
+            },
+        });
+
+       
+        // Restore stock
+        for (const item of order.items) {
+
+            await tx.product.update({
+                where: {
+                    id: item.productId,
+                },
+                data: {
+                    stock: {
+                        increment: item.quantity,
+                    },
+                },
+            });
+
+        }
+        if (
+    order.payment &&
+    order.payment.status === "COMPLETED"
+) {
+    throw new Error(
+        "Paid orders require refund process"
+    );
+}
+
+        // Update order status
+        const updatedOrder =
+            await tx.order.update({
+                where: {
+                    id: orderId,
+                },
+                data: {
+                    status: "CANCELLED",
+                },
+                include: {
+                    items: true,
+                },
+            });
+
+        return updatedOrder;
+    });
+};
 module.exports = {
     updateProfile,
     getProducts,
@@ -491,7 +547,8 @@ module.exports = {
     handleSuccess,
     handleFailure,
     createCheckoutSession,
-    handlePaymentSuccess
+    handlePaymentSuccess,
+    cancelOrder,
 
     
 

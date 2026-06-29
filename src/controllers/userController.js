@@ -428,10 +428,13 @@ const createOrder = async (req, res) => {
             req.userId,
             req.body
         );
+         await utils.sendNotificationEmail(order.user.email,"Order Creation",
+    `Your order ${order.id} has been created successfully.`
+);
 
         return res.status(201).json({
             success: true,
-            message: 'Order created successfully',
+            message: 'Order created successfully.Check your email inbox or spam ',
             data: order,
         });
     } catch (error) {
@@ -752,6 +755,89 @@ const createCheckoutSession =
 
     }
 };
+/**
+ * @swagger
+ * /user/cancel-order/{orderId}:
+ *   patch:
+ *     summary: Cancel an order
+ *     tags: [Order]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID to cancel
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 msg:
+ *                   type: string
+ *                   example: Order cancelled successfully
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 msg:
+ *                   type: string
+ *                   example: Order cannot be cancelled
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Order not found
+ *       500:
+ *         description: Internal server error
+ */
+const cancelOrder = async(req,res)=>{
+    const {orderId} = req.params;
+    const userId = req.userId;
+
+
+    try{
+        const getOrderInfo = await userService.getOrderById(orderId);
+        if(!getOrderInfo){
+            return res.status(404).json({msg:'Order not found'})
+        }
+        if(getOrderInfo.userId !== userId){
+            return res.status(401).json({msg:'User not matched'})
+        }
+        if ( getOrderInfo.status === "SHIPPED" || getOrderInfo.status === "DELIVERED") {
+             return res.status(400).json({
+             msg: "Order cannot be cancelled"});
+            }
+        if (getOrderInfo.status === "CANCELLED") {
+            return res.status(400).json({
+             msg: "Order already cancelled"
+        });
+}    
+        const order = await userService.cancelOrder(orderId)
+        await utils.sendNotificationEmail(order.user.email,"Order Cancelled",
+    `Your order ${order.id} has been cancelled successfully.`
+);
+        return res.status(200).json({
+            success: true,
+            msg: "Order cancelled successfully",
+            data: order
+});
+
+    }catch(err){
+        console.log(err);
+        return res.status(500).json({msg:'internal server error'})
+    }
+}
 
 
 module.exports = {
@@ -767,4 +853,5 @@ module.exports = {
 	webhook,
 	createPaymentIntent,
 	createCheckoutSession,
+    cancelOrder,
 };

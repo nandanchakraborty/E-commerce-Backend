@@ -49,6 +49,13 @@ router.post(
 // );
 
 router.post(
+	"/cancel-order/:orderId",
+	userMiddleware,
+	userController.cancelOrder,
+);
+
+
+router.post(
     "/checkout/:orderId",
     userMiddleware,
     userController

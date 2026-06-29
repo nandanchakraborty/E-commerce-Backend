@@ -53,9 +53,48 @@ async function sendOTPEmail(email, otp) {
 	});
 }
 
+
+const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+        user: EMAILUSER,
+        pass: EMAILPASSWORD,
+    },
+});
+async function sendNotificationEmail(
+    email,
+    sub,
+    msg
+) {
+    try {
+
+        await transporter.sendMail({
+            from: `"e-Commerce" <${EMAILUSER}>`,
+            to: email,
+            subject: sub,
+            html: `
+                <h2>${sub}</h2>
+                <p>${msg}</p>
+            `,
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Email sending failed:",
+            error
+        );
+
+        throw error;
+    }
+}
+
 module.exports = {
 	getUserSecret,
 	generateOTP,
 	verifyOTP,
 	sendOTPEmail,
+	sendNotificationEmail,
 };
