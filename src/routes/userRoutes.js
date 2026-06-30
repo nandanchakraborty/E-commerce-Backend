@@ -67,4 +67,23 @@ router.patch(
     userController.updateProfile
 );
 
+router.post(
+    "/reviews/:productId",
+    userMiddleware,
+    userController.createReview
+);
+router.patch(
+    "/reviews/:reviewId",
+    userMiddleware,
+    userController.updateReview
+);
+router.delete(
+    "/reviews/:reviewId",
+    userMiddleware,
+    userController.deleteReview
+);
+router.get(
+    "/reviews/product/:productId",
+    userController.getProductReviews
+);
 module.exports = router;

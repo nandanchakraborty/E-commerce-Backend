@@ -530,7 +530,154 @@ const cancelOrder = async (orderId) => {
         return updatedOrder;
     });
 };
+const createReview = async (
+    userId,
+    productId,
+    payload
+) => {
+
+    const purchased =
+        await prisma.orderItem.findFirst({
+            where: {
+                productId,
+
+                order: {
+                    userId,
+
+                    status: {
+                        in: [
+                            "PAID",
+                            "DELIVERED",
+                        ],
+                    },
+                },
+            },
+        });
+
+    if (!purchased) {
+        throw new Error(
+            "You must purchase this product before reviewing"
+        );
+    }
+
+    const existingReview =
+        await prisma.review.findFirst({
+            where: {
+                userId,
+                productId,
+            },
+        });
+
+    if (existingReview) {
+        throw new Error(
+            "You already reviewed this product"
+        );
+    }
+
+    return prisma.review.create({
+        data: {
+            userId,
+            productId,
+            rating: payload.rating,
+            comment: payload.comment,
+        },
+    });
+};
+const updateReview = async (
+    reviewId,
+    userId,
+    payload
+) => {
+
+    const review =
+        await prisma.review.findUnique({
+            where: {
+                id: reviewId,
+            },
+        });
+
+    if (!review) {
+        throw new Error(
+            "Review not found"
+        );
+    }
+
+    if (review.userId !== userId) {
+        throw new Error(
+            "Unauthorized"
+        );
+    }
+
+    return prisma.review.update({
+        where: {
+            id: reviewId,
+        },
+        data: {
+            rating: payload.rating,
+            comment: payload.comment,
+        },
+    });
+};
+const deleteReview = async (
+    reviewId,
+    userId
+) => {
+
+    const review =
+        await prisma.review.findUnique({
+            where: {
+                id: reviewId,
+            },
+        });
+
+    if (!review) {
+        throw new Error(
+            "Review not found"
+        );
+    }
+
+    if (review.userId !== userId) {
+        throw new Error(
+            "Unauthorized"
+        );
+    }
+
+    await prisma.review.delete({
+        where: {
+            id: reviewId,
+        },
+    });
+
+    return true;
+};
+const getProductReviews =
+async (productId) => {
+
+    return prisma.review.findMany({
+        where: {
+            productId,
+        },
+
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
+        },
+
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+};
+
 module.exports = {
+    createReview,
+    updateReview,
+    deleteReview,
+    getProductReviews,
     updateProfile,
     getProducts,
     findCart,

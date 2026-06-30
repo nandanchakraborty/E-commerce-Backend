@@ -507,7 +507,68 @@ const getDashboard = async (
 
     }
 };
+const getReviewsByProduct =
+async (
+    req,
+    res
+) => {
+
+    try {
+
+        const { productId } =
+            req.params;
+
+        const reviews =
+            await adminService
+                .getReviewsByProduct(
+                    productId
+                );
+
+        return res.status(200).json({
+            success: true,
+            count: reviews.length,
+            data: reviews,
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+const getAllReviews = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const reviews =
+            await adminService
+                .getAllReviews();
+
+        return res.status(200).json({
+            success: true,
+            count: reviews.length,
+            data: reviews,
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+
 module.exports = {
+	getReviewsByProduct,
+	getAllReviews,
 	addCategory,
 	getCategories,
 	updateCategory,

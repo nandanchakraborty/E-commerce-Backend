@@ -49,4 +49,15 @@ router.get(
    // adminMiddleware,
     adminController.getDashboard
 );
+router.get(
+    "/admin/reviews/product/:productId",
+    adminMiddleware,
+    adminController.getReviewsByProduct
+);
+router.get(
+    "/admin/reviews",
+    
+    adminMiddleware,
+    adminController.getAllReviews
+);
 module.exports = router;

@@ -234,8 +234,54 @@ const getDashboard = async () => {
 		recentOrders,
 	};
 };
+const getReviewsByProduct =
+async (productId) => {
+
+    return prisma.review.findMany({
+        where: {
+            productId,
+        },
+
+        include: {
+            user: true,
+            product: true,
+        },
+
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+};
+const getAllReviews =
+async () => {
+
+    return prisma.review.findMany({
+
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
+
+            product: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
+        },
+
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+};
 
 module.exports = {
+	getReviewsByProduct,
 	getAllCategories,
 	updateCategory,
 	deleteCategory,
@@ -247,4 +293,6 @@ module.exports = {
 	getProductById,
 	deleteProduct,
 	getDashboard,
+	getAllReviews,
+
 };

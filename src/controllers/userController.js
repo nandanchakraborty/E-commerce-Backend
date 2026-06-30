@@ -858,9 +858,139 @@ const cancelOrder = async(req,res)=>{
         return res.status(500).json({msg:'internal server error'})
     }
 }
+const createReview = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const { productId } =
+            req.params;
+
+        const review =
+            await userService
+                .createReview(
+                    req.userId,
+                    productId,
+                    req.body
+                );
+
+        return res.status(201).json({
+            success: true,
+            data: review,
+        });
+
+    } catch (error) {
+
+        return res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+const updateReview = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const { reviewId } =
+            req.params;
+
+        const review =
+            await userService
+                .updateReview(
+                    reviewId,
+                    req.userId,
+                    req.body
+                );
+
+        return res.status(200).json({
+            success: true,
+            data: review,
+        });
+
+    } catch (error) {
+
+        return res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+const deleteReview = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const { reviewId } =
+            req.params;
+
+        await userService
+            .deleteReview(
+                reviewId,
+                req.userId
+            );
+
+        return res.status(200).json({
+            success: true,
+            message:
+                "Review deleted successfully",
+        });
+
+    } catch (error) {
+
+        return res.status(400).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
+const getProductReviews = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const { productId } =
+            req.params;
+
+        const reviews =
+            await userService
+                .getProductReviews(
+                    productId
+                );
+
+        return res.status(200).json({
+            success: true,
+            count: reviews.length,
+            data: reviews,
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+
+    }
+};
 
 
 module.exports = {
+    getProductReviews,
+    deleteReview,
+    updateReview,
+    createReview,
     updateProfile,
 	getProducts,
 	addToCart,
