@@ -500,7 +500,7 @@ GitHub:
 https://github.com/nandanchakraborty
 
 LinkedIn:
-https://linkedin.com
+https://www.linkedin.com/in/nandan-chakraborty-7aa61533b/
 
 Email:
 [nandancsebubt@gmail.com](mailto:nandancsebubt@gmail.com)
