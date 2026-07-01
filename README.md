@@ -13,7 +13,7 @@ A production-ready E-Commerce Backend built with Node.js, Express.js, PostgreSQL
 * Protected Routes using JWT Middleware
 
 ### Product Management
-
+* Category create,update,delete(Admin)
 * Create Product (Admin)
 * Update Product (Admin)
 * Delete Product (Admin)
@@ -67,9 +67,11 @@ A production-ready E-Commerce Backend built with Node.js, Express.js, PostgreSQL
 * Total Orders
 * Total Revenue
 * Total Products
+* cart management
 * Recent Orders
 * Order Management
 * Review Management
+
 
 ### API Documentation
 
@@ -176,17 +178,17 @@ E-COMMERCE-BACKEND
 └── tsconfig.json
 
 ---
-Folder Responsibilities
-Folder	Purpose
-controllers/	Handle request and response logic
-services/	Business logic and database operations
-routes/	API endpoint definitions
-middleware/	Authentication, authorization, validation
-validators/	Zod validation schemas
-utils/	Helper functions (OTP, email, etc.)
-config/	Database, environment, Swagger configuration
-prisma/	Database schema and migrations
-public/	Static files (Stripe test pages, success page, etc.)
+Folder_Responsibilities:
+Folder-------------	Purpose
+controllers/------	Handle request and response logic
+services/-------	Business logic and database operations
+routes/---------	API endpoint definitions
+middleware/-----	Authentication, authorization, validation
+validators/-------- Zod validation schemas
+utils/----------	Helper functions (OTP, email, etc.)
+config/---------	Database, environment, Swagger configuration
+prisma/---------	Database schema and migrations
+public/---------	Static files (Stripe test pages, success page, etc.)
 
 # Database Schema
 
@@ -341,13 +343,13 @@ Ensures the request truly came from Stripe.
 
 When:
 
-```text
+```
 checkout.session.completed
 ```
 
 is received:
 
-```text
+```
 Order Status → PAID
 Payment Status → COMPLETED
 Paid Time Saved
@@ -361,7 +363,7 @@ Email Sent
 
 To avoid duplicate payments:
 
-```text
+```
 User Double Click
 Network Retry
 Stripe Retry
@@ -369,7 +371,7 @@ Stripe Retry
 
 the system stores:
 
-```text
+```
 idempotencyKey
 stripeIntentId
 ```
@@ -428,7 +430,8 @@ Create PostgreSQL database.
 
 Update:
 
-```env
+```
+.env
 DATABASE_URL=
 ```
 
