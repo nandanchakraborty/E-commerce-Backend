@@ -124,46 +124,69 @@ A production-ready E-Commerce Backend built with Node.js, Express.js, PostgreSQL
 # Project Structure
 
 ```bash
-src/
+E-COMMERCE-BACKEND
 │
-├── config/
-│   ├── config.js
-│   └── prisma.js
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
 │
-├── controllers/
-│   ├── authController.js
-│   ├── userController.js
-│   └── adminController.js
+├── public/
 │
-├── middleware/
-│   ├── authMiddleware.js
-│   ├── adminMiddleware.js
-│   └── validate.js
+├── src/
+│   │
+│   ├── config/
+│   │   ├── config.js
+│   │   ├── prisma.js
+│   │   └── swagger.js
+│   │
+│   ├── controllers/
+│   │   ├── adminController.js
+│   │   ├── authController.js
+│   │   └── userController.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── validationMiddleware.js
+│   │
+│   ├── models/
+│   │
+│   ├── routes/
+│   │   ├── adminRoutes.js
+│   │   ├── authRoutes.js
+│   │   └── userRoutes.js
+│   │
+│   ├── services/
+│   │   ├── adminService.js
+│   │   ├── authService.js
+│   │   └── userService.js
+│   │
+│   ├── utils/
+│   │   └── helperFunction.js
+│   │
+│   └── validators/
+│       └── authValidators.js
 │
-├── routes/
-│   ├── authRoutes.js
-│   ├── userRoutes.js
-│   └── adminRoutes.js
-│
-├── services/
-│   ├── authService.js
-│   ├── userService.js
-│   └── adminService.js
-│
-├── validators/
-│   ├── authValidators.js
-│   ├── productValidators.js
-│   └── orderValidators.js
-│
-├── utils/
-│   ├── helperFunction.js
-│   └── sendMail.js
-│
-└── generated/
-    └── prisma/
-```
+├── app.js
+├── server.js
+├── .env
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── README.md
+└── tsconfig.json
 
 ---
+Folder Responsibilities
+Folder	Purpose
+controllers/	Handle request and response logic
+services/	Business logic and database operations
+routes/	API endpoint definitions
+middleware/	Authentication, authorization, validation
+validators/	Zod validation schemas
+utils/	Helper functions (OTP, email, etc.)
+config/	Database, environment, Swagger configuration
+prisma/	Database schema and migrations
+public/	Static files (Stripe test pages, success page, etc.)
 
 # Database Schema
 
